@@ -120,7 +120,7 @@ class HoneyPotBaseProtocol(insults.TerminalProtocol, TimeoutMixin):
         ret = failure.Failure(error.ProcessTerminated(exitCode=1))
         self.terminal.transport.processEnded(ret)
 
-    def connectionLost(self, reason: failure.Failure = connectionDone) -> None:
+    def connectionLost(self, reason: failure.Failure = None) -> None:
         """
         Called when the connection is shut down.
         Clear any circular references here, and any external references to
