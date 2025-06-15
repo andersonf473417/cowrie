@@ -15,7 +15,6 @@ from typing import ClassVar
 from twisted.conch import recvline
 from twisted.conch.insults import insults
 from twisted.internet import error
-from twisted.internet.protocol import connectionDone
 from twisted.protocols.policies import TimeoutMixin
 from twisted.python import failure, log
 
