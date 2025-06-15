@@ -60,7 +60,7 @@ def checkblacklist(ftxt):
     return False
 
 
-def recurse(localroot, root, tree, maxdepth=100):
+def recurse(localroot: str, root: str, tree: list, maxdepth: int = 100) -> None:
     if maxdepth == 0:
         return
 
@@ -87,6 +87,7 @@ def recurse(localroot, root, tree, maxdepth=100):
         except OSError:
             continue
 
+        entry_contents: list = []
         entry = [
             name,
             T_FILE,
@@ -95,7 +96,7 @@ def recurse(localroot, root, tree, maxdepth=100):
             s.st_size,
             s.st_mode,
             int(s.st_mtime),
-            [],
+            entry_contents,
             None,
             None,
         ]
@@ -116,7 +117,7 @@ def recurse(localroot, root, tree, maxdepth=100):
         elif S_ISDIR(s[ST_MODE]):
             entry[A_TYPE] = T_DIR
             if (PROC or not localpath.startswith("/proc/")) and maxdepth > 0:
-                recurse(localroot, fspath, entry[A_CONTENTS], maxdepth - 1)
+                recurse(localroot, fspath, entry_contents, maxdepth - 1)
         elif S_ISREG(s[ST_MODE]):
             entry[A_TYPE] = T_FILE
         elif S_ISBLK(s[ST_MODE]):
@@ -184,8 +185,9 @@ def run():
 
     logit("Processing:\n")
 
-    tree = ["/", T_DIR, 0, 0, 0, 0, 0, [], ""]
-    recurse(localroot, "/", tree[A_CONTENTS], maxdepth)
+    contents: list = []
+    tree = ["/", T_DIR, 0, 0, 0, 0, 0, contents, ""]
+    recurse(localroot, "/", contents, maxdepth)
 
     if output:
         pickle.dump(tree, open(output, "wb"))
