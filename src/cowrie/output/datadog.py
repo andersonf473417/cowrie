@@ -36,6 +36,9 @@ class Output(cowrie.core.output.Output):
             "output_datadog", "hostname", fallback=platform.node()
         )
         self.agent = client.Agent(reactor)
+        self.url: bytes
+        self.api_key: bytes
+        self.agent: client.Agent
 
     def stop(self) -> None:
         pass
