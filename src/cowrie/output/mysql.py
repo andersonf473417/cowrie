@@ -101,6 +101,8 @@ class Output(cowrie.core.output.Output):
         """
         Just run a deferred sql query, only care about errors
         """
+        if not hasattr(self, "db"):
+            raise RuntimeError("Database not initialized")
         if self.debug:
             log.msg(f"output_mysql: MySQL query: {sql} {args!r}")
         d = self.db.runQuery(sql, args)

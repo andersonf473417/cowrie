@@ -81,6 +81,13 @@ class Output(cowrie.core.output.Output):
             log.err(f"Failed to connect to RabbitMQ: {e}")
             self.connection = None
             self.channel = None
+            self.username = ""
+            self.password = ""
+            self.host = ""
+            self.port = 5672
+            self.vhost = "/"
+            self.exchange = ""
+            self.exchange_type = "direct"
 
     def stop(self):
         """

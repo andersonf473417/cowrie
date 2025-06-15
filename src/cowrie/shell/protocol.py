@@ -68,6 +68,28 @@ class HoneyPotBaseProtocol(insults.TerminalProtocol, TimeoutMixin):
         self.password_input = False
         self.cmdstack = []
 
+    def __init__(self, avatar):
+        self.user = avatar
+        self.environ = avatar.environ
+        self.hostname: str = self.user.server.hostname
+        self.fs = self.user.server.fs
+        self.pp = None
+        self.logintime: float
+        self.realClientIP: str
+        self.realClientPort: int
+        self.kippoIP: str
+        self.clientIP: str
+        self.sessionno: int
+        self.factory = None
+
+        if self.fs.exists(self.user.avatar.home):
+            self.cwd = self.user.avatar.home
+        else:
+            self.cwd = "/"
+        self.data = None
+        self.password_input = False
+        self.cmdstack = []
+
     def getProtoTransport(self):
         """
         Due to protocol nesting differences, we need provide how we grab

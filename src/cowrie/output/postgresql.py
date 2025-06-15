@@ -60,7 +60,7 @@ class Output(cowrie.core.output.Output):
                 cp_max=1,
             )
         except Exception as e:
-            log.msg(f"output_mysql: Error {e.args[0]}: {e.args[1]}")
+            log.msg(f"output_postgresql: Error {e.args[0]}: {e.args[1]}")
 
     def stop(self):
         self.db.close()

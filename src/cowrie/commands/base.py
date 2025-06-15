@@ -853,7 +853,8 @@ class Command_passwd(HoneyPotCommand):
             format="INPUT (%(realm)s): %(input)s",
         )
         self.password = line.strip()
-        self.callbacks.pop(0)(line)
+        cb = self.callbacks.pop(0)
+        cb(line)
 
 
 commands["/usr/bin/passwd"] = Command_passwd
@@ -981,7 +982,8 @@ class Command_yes(HoneyPotCommand):
         self.scheduled = reactor.callLater(0.01, self.y)  # type: ignore[attr-defined]
 
     def handle_CTRL_C(self) -> None:
-        self.scheduled.cancel()
+        if hasattr(self, 'scheduled') and self.scheduled:
+            self.scheduled.cancel()
         self.exit()
 
 

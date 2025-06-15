@@ -24,6 +24,9 @@ class Output(cowrie.core.output.Output):
         return f"cowrielog-{random_log_id}"
 
     def sendLogs(self, event):
+        if not hasattr(self, 'loggingingestion_client') or self.loggingingestion_client is None:
+            raise RuntimeError("Oracle Cloud logging client not initialized. Call start() first.")
+
         log_id = self.generate_random_log_id()
         # Initialize service client with default config file
         current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)

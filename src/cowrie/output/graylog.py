@@ -54,6 +54,10 @@ class Output(cowrie.core.output.Output):
         body = FileBodyProducer(BytesIO(json.dumps(entry).encode("utf8")))
         self.agent.request(b"POST", self.url, headers, body)
 
+    def __init__(self):
+        self.agent = None
+        self.url = None
+
 
 @implementer(IPolicyForHTTPS)
 class WhitelistContextFactory:
