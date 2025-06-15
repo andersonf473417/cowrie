@@ -17,8 +17,8 @@ from cowrie.core.config import CowrieConfig
 
 class Output(cowrie.core.output.Output):
     def start(self) -> None:
-        self.url = CowrieConfig.get("output_discord", "url").encode("utf8")
-        self.agent = client.Agent(reactor)
+        self.url: bytes = CowrieConfig.get("output_discord", "url").encode("utf8")
+        self.agent: client.Agent = client.Agent(reactor)
 
     def stop(self) -> None:
         pass

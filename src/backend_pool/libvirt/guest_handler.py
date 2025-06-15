@@ -17,9 +17,9 @@ class QemuGuestError(Exception):
     pass
 
 
-def create_guest(connection, mac_address, guest_unique_id):
+def create_guest(connection: Any, mac_address: str, guest_unique_id: str) -> tuple[Any, str]:
     # lazy import to avoid exception if not using the backend_pool and libvirt not installed (#1185)
-    import libvirt
+    import libvirt  # type: ignore
 
     # get guest configurations
     configuration_file: str = os.path.join(
@@ -90,14 +90,14 @@ def create_guest(connection, mac_address, guest_unique_id):
     )
 
     try:
-        dom = connection.createXML(guest_config, 0)
+        dom = connection.createXML(guest_config, 0)  # type: ignore
         if dom is None:
             log.err(
                 eventid="cowrie.backend_pool.guest_handler",
                 format="Failed to create a domain from an XML definition.",
             )
             sys.exit(1)
-    except libvirt.libvirtError as e:
+    except libvirt.libvirtError as e:  # type: ignore
         log.err(
             eventid="cowrie.backend_pool.guest_handler",
             format="Error booting guest: %(error)s",
@@ -107,6 +107,6 @@ def create_guest(connection, mac_address, guest_unique_id):
     log.msg(
         eventid="cowrie.backend_pool.guest_handler",
         format="Guest %(name)s has booted",
-        name=dom.name(),
+        name=dom.name(),  # type: ignore
     )
     return dom, disk_img

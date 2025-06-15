@@ -19,23 +19,23 @@ from cowrie.core.config import CowrieConfig
 
 class Output(cowrie.core.output.Output):
     def start(self) -> None:
-        self.url = CowrieConfig.get("output_datadog", "url").encode("utf8")
-        self.api_key = CowrieConfig.get(
+        self.url: bytes = CowrieConfig.get("output_datadog", "url").encode("utf8")
+        self.api_key: bytes = CowrieConfig.get(
             "output_datadog", "api_key", fallback=""
         ).encode("utf8")
         if len(self.api_key) == 0:
             log.msg("Datadog output module: API key is not defined.")
-        self.ddsource = CowrieConfig.get(
+        self.ddsource: str = CowrieConfig.get(
             "output_datadog", "ddsource", fallback="cowrie"
         )
-        self.ddtags = CowrieConfig.get("output_datadog", "ddtags", fallback="env:dev")
-        self.service = CowrieConfig.get(
+        self.ddtags: str = CowrieConfig.get("output_datadog", "ddtags", fallback="env:dev")
+        self.service: str = CowrieConfig.get(
             "output_datadog", "service", fallback="honeypot"
         )
-        self.hostname = CowrieConfig.get(
+        self.hostname: str = CowrieConfig.get(
             "output_datadog", "hostname", fallback=platform.node()
         )
-        self.agent = client.Agent(reactor)
+        self.agent: client.Agent = client.Agent(reactor)
 
     def stop(self) -> None:
         pass

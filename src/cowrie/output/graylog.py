@@ -21,9 +21,9 @@ from cowrie.core.config import CowrieConfig
 
 class Output(cowrie.core.output.Output):
     def start(self) -> None:
-        self.url = CowrieConfig.get("output_graylog", "url").encode("utf8")
+        self.url: bytes = CowrieConfig.get("output_graylog", "url").encode("utf8")
         contextFactory = WhitelistContextFactory()
-        self.agent = client.Agent(reactor, contextFactory)
+        self.agent: client.Agent = client.Agent(reactor, contextFactory)
 
     def stop(self) -> None:
         pass

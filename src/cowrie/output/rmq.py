@@ -35,6 +35,16 @@ class Output(cowrie.core.output.Output):
     with reconnection logic.
     """
 
+    host: str = ""
+    port: int = 0
+    username: str = ""
+    password: str = ""
+    vhost: str = ""
+    exchange: str = ""
+    exchange_type: str = ""
+    connection = None
+    channel = None
+
     def start(self):
         """
         Initialize the RabbitMQ connection and declare the exchange.

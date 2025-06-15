@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from twisted.python import failure
     from twisted.internet.interfaces import IAddress
+    from twisted.internet.protocol import Protocol
+    from twisted.internet.base import ReactorBase
+    from twisted.internet.interfaces import IListeningPort
+
 from twisted.internet import protocol
 from twisted.internet import reactor
 from twisted.internet.protocol import connectionDone
@@ -38,10 +42,10 @@ class ServerProtocol(protocol.Protocol):
     def __init__(self, dst_ip: str, dst_port: int):
         self.dst_ip: str = dst_ip
         self.dst_port: int = dst_port
-        self.client_protocol: ClientProtocol
+        self.client_protocol: ClientProtocol | None = None
         self.buffer: list[bytes] = []
 
-    def connectionMade(self):
+    def connectionMade(self) -> None:
         reactor.connectTCP(self.dst_ip, self.dst_port, ClientFactory(self))
 
     def dataReceived(self, data: bytes) -> None:
@@ -53,14 +57,16 @@ class ServerProtocol(protocol.Protocol):
             reactor.callLater(0.5, self.sendData)  # type: ignore[attr-defined]
             return
 
+        assert self.client_protocol is not None
         assert self.client_protocol.transport is not None
         for packet in self.buffer:
             self.client_protocol.transport.write(packet)
         self.buffer = []
 
     def connectionLost(self, reason: failure.Failure = connectionDone) -> None:
-        assert self.client_protocol.transport is not None
-        self.client_protocol.transport.loseConnection()
+        if self.client_protocol is not None:
+            assert self.client_protocol.transport is not None
+            self.client_protocol.transport.loseConnection()
 
 
 class ServerFactory(protocol.Factory):
@@ -82,8 +88,8 @@ class NATService:
     guests, like a NAT.
     """
 
-    def __init__(self):
-        self.bindings: dict[int, Any] = {}
+    def __init__(self) -> None:
+        self.bindings: dict[int, tuple[int, IListeningPort, IListeningPort]] = {}
         self.lock = Lock()  # we need to be thread-safe just in case, this is accessed from multiple clients
 
     def request_binding(
@@ -93,7 +99,11 @@ class NATService:
             # see if binding is already created
             if guest_id in self.bindings:
                 # increase connected
-                self.bindings[guest_id][0] += 1
+                self.bindings[guest_id] = (
+                    self.bindings[guest_id][0] + 1,
+                    self.bindings[guest_id][1],
+                    self.bindings[guest_id][2],
+                )
 
                 return (
                     self.bindings[guest_id][1]._realPortNumber,
@@ -106,22 +116,27 @@ class NATService:
                 nat_telnet = reactor.listenTCP(  # type: ignore[attr-defined]
                     0, ServerFactory(dst_ip, telnet_port), interface="0.0.0.0"
                 )
-                self.bindings[guest_id] = [1, nat_ssh, nat_telnet]
+                self.bindings[guest_id] = (1, nat_ssh, nat_telnet)
 
                 return nat_ssh._realPortNumber, nat_telnet._realPortNumber
 
     def free_binding(self, guest_id: int) -> None:
         with self.lock:
-            self.bindings[guest_id][0] -= 1
+            count, nat_ssh, nat_telnet = self.bindings[guest_id]
+            count -= 1
 
             # stop listening if no one is connected
-            if self.bindings[guest_id][0] <= 0:
-                self.bindings[guest_id][1].stopListening()
-                self.bindings[guest_id][2].stopListening()
+            if count <= 0:
+                nat_ssh.stopListening()
+                nat_telnet.stopListening()
                 del self.bindings[guest_id]
+            else:
+                self.bindings[guest_id] = (count, nat_ssh, nat_telnet)
 
-    def free_all(self):
+    def free_all(self) -> None:
         with self.lock:
-            for guest_id in self.bindings:
-                self.bindings[guest_id][1].stopListening()
-                self.bindings[guest_id][2].stopListening()
+            for guest_id in list(self.bindings.keys()):
+                _, nat_ssh, nat_telnet = self.bindings[guest_id]
+                nat_ssh.stopListening()
+                nat_telnet.stopListening()
+                del self.bindings[guest_id]

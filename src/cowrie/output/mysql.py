@@ -59,6 +59,7 @@ class Output(cowrie.core.output.Output):
     """
 
     debug: bool = False
+    db: Any = None
 
     def start(self):
         self.debug = CowrieConfig.getboolean("output_mysql", "debug", fallback=False)
